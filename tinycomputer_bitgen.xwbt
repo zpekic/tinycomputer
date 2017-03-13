@@ -1,0 +1,8 @@
+INTSTYLE=ise
+INFILE=C:\Users\zoltanp\Documents\HexCalc\tinycomputer\tinycomputer.ncd
+OUTFILE=C:\Users\zoltanp\Documents\HexCalc\tinycomputer\tinycomputer.bit
+FAMILY=Spartan3A and Spartan3AN
+PART=xc3s200a-4vq100
+WORKINGDIR=C:\Users\zoltanp\Documents\HexCalc\tinycomputer
+LICENSE=WebPack
+USER_INFO=210994392_0_0_816

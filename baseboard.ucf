@@ -1,0 +1,94 @@
+#      __  ____                 _   __                
+#    /  |/  (_)_____________  / | / /___ _   ______ _
+#   / /|_/ / / ___/ ___/ __ \/  |/ / __ \ | / / __ `/
+#  / /  / / / /__/ /  / /_/ / /|  / /_/ / |/ / /_/ / 
+# /_/  /_/_/\___/_/   \____/_/ |_/\____/|___/\__,_/  
+#                                                  
+# Mercury BASEBOARD User Constraints File
+# Revision 1.0.0 (03/25/2015)
+# Copyright (c) 2015 MicroNova, LLC
+# www.micro-nova.com
+
+# system oscillators
+NET "EXT_CLK"   LOC = "P44" | IOSTANDARD = LVTTL ;
+NET "CLK"       LOC = "P43" | IOSTANDARD = LVTTL ;
+NET "CLK"       TNM_NET = "CLK"; 
+TIMESPEC        "TS_CLK" = PERIOD "CLK" 20 ns HIGH 50 %;
+
+# PS/2
+NET "PS2_DATA"  LOC = "P13" | IOSTANDARD = LVTTL ;
+NET "PS2_CLK"   LOC = "P15" | IOSTANDARD = LVTTL ;
+
+# Buttons
+NET "USR_BTN"	LOC = "P41" | IOSTANDARD = LVTTL ;
+NET "BTN<0>"	LOC = "P68" | IOSTANDARD = LVTTL ;
+NET "BTN<1>"	LOC = "P97" | IOSTANDARD = LVTTL ;
+NET "BTN<2>"	LOC = "P7"  | IOSTANDARD = LVTTL ;
+NET "BTN<3>"	LOC = "P82" | IOSTANDARD = LVTTL ;
+
+# VGA
+NET "RED<0>" 	LOC = "P20" | IOSTANDARD = LVTTL ;
+NET "RED<1>" 	LOC = "P32" | IOSTANDARD = LVTTL ;
+NET "RED<2>" 	LOC = "P33" | IOSTANDARD = LVTTL ;
+NET "GRN<0>" 	LOC = "P34" | IOSTANDARD = LVTTL ;
+NET "GRN<1>" 	LOC = "P35" | IOSTANDARD = LVTTL ;
+NET "GRN<2>" 	LOC = "P36" | IOSTANDARD = LVTTL ;
+NET "BLU<0>" 	LOC = "P37" | IOSTANDARD = LVTTL ;
+NET "BLU<1>"	LOC = "P40" | IOSTANDARD = LVTTL ;
+NET "HSYNC"	LOC = "P16" | IOSTANDARD = LVTTL ;
+NET "VSYNC"     LOC = "P19" | IOSTANDARD = LVTTL ;
+
+# SWITCHES
+NET "SW<0>"  	LOC = "P59" | IOSTANDARD = LVTTL ;
+NET "SW<1>"     LOC = "P60" | IOSTANDARD = LVTTL ;
+NET "SW<2>"     LOC = "P61" | IOSTANDARD = LVTTL ;
+NET "SW<3>"     LOC = "P62" | IOSTANDARD = LVTTL ;
+NET "SW<4>"     LOC = "P64" | IOSTANDARD = LVTTL ;
+NET "SW<5>"     LOC = "P57" | IOSTANDARD = LVTTL ;
+NET "SW<6>"     LOC = "P56" | IOSTANDARD = LVTTL ;
+NET "SW<7>"     LOC = "P52" | IOSTANDARD = LVTTL ;
+
+# 7 SEG
+NET "AN<0>"      LOC = "P50" | IOSTANDARD = LVTTL ;
+NET "AN<1>"      LOC = "P49" | IOSTANDARD = LVTTL ;
+NET "AN<2>"      LOC = "P85" | IOSTANDARD = LVTTL ;
+NET "AN<3>"      LOC = "P84" | IOSTANDARD = LVTTL ;
+NET "A_TO_G<0>"  LOC = "P72" | IOSTANDARD = LVTTL ;
+NET "A_TO_G<1>"  LOC = "P71" | IOSTANDARD = LVTTL ;
+NET "A_TO_G<2>"  LOC = "P70" | IOSTANDARD = LVTTL ;
+NET "A_TO_G<3>"  LOC = "P65" | IOSTANDARD = LVTTL ;
+NET "A_TO_G<4>"  LOC = "P77" | IOSTANDARD = LVTTL ;
+NET "A_TO_G<5>"  LOC = "P78" | IOSTANDARD = LVTTL ;
+NET "A_TO_G<6>"  LOC = "P83" | IOSTANDARD = LVTTL ;
+NET "DOT"        LOC = "P73" | IOSTANDARD = LVTTL ;
+
+# PMOD
+NET "PMOD<0>"   LOC = "P5"  | IOSTANDARD = LVTTL ;
+NET "PMOD<1>"   LOC = "P4"  | IOSTANDARD = LVTTL ;
+NET "PMOD<2>"   LOC = "P6"  | IOSTANDARD = LVTTL ;
+NET "PMOD<3>"   LOC = "P98" | IOSTANDARD = LVTTL ;
+NET "PMOD<4>"   LOC = "P94" | IOSTANDARD = LVTTL ;
+NET "PMOD<5>"   LOC = "P93" | IOSTANDARD = LVTTL ;
+NET "PMOD<6>"   LOC = "P90" | IOSTANDARD = LVTTL ;
+NET "PMOD<7>"   LOC = "P89" | IOSTANDARD = LVTTL ;
+
+# AUDIO OUT
+NET "AUDIO_OUT_R" LOC = "P88" | IOSTANDARD = LVTTL ;
+NET "AUDIO_OUT_L" LOC = "P86" | IOSTANDARD = LVTTL ;
+
+# memory & bus-switch
+NET "SWITCH_OEN" LOC = "P3"  | IOSTANDARD = LVTTL ;
+NET "MEMORY_OEN" LOC = "P30" | IOSTANDARD = LVTTL ;
+
+# flash/usb interface
+NET "FPGA_CSN"	 LOC = "P39" | IOSTANDARD = LVTTL ;
+NET "FLASH_CSN"  LOC = "P27" | IOSTANDARD = LVTTL ;
+NET "SPI_MOSI" LOC = "P46" | IOSTANDARD = LVTTL ;
+NET "SPI_MISO" LOC = "P51" | IOSTANDARD = LVTTL ;
+NET "SPI_SCK"  LOC = "P53" | IOSTANDARD = LVTTL ;
+
+# ADC interface
+NET "ADC_MISO"	LOC = "P21" | IOSTANDARD = LVTTL ;
+NET "ADC_MOSI"	LOC = "P10" | IOSTANDARD = LVTTL ;
+NET "ADC_SCK" 	LOC = "P9"  | IOSTANDARD = LVTTL ;
+NET "ADC_CSN"	LOC = "P12" | IOSTANDARD = LVTTL ;
