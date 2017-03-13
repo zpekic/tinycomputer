@@ -1,0 +1,33 @@
+; 		//Test program
+; 		.org 0	//fill program memory starting at location 0
+0000 50 ; 	A=0	//set register indexes
+0001 58 ; 	B=0
+0002 0E ; 	Q = port[A]	//read switches from channel 0
+0003 1E ; 	port[A] = Q	//output to LEDs on channel 0
+0004 51 ; 	A++		//next channel (16 switches, 4 seven-seg LEDs)
+0005 0E ; 	Q = port[A]
+0006 1E ; 	Q=port[A]
+0007 51 ; 	A++
+0008 0E ; 	Q = port[A]
+0009 1E ; 	port[A] = Q
+000A 51 ; 	A++
+000B 0E ; 	Q = port[A]
+000C 1E ; 	port[A] = Q
+000D 51 ; 	A++
+000E 0E ; 	Q = port[A]
+000F 1E ; 	port[A] = Q
+0010 58 ; loopB:B=0		//reset B to 0
+0011 59 ; 	B++
+0012 59 ; 	B++
+0013 59 ; 	B++
+0014 59 ; 	B++		//B is now 4, use it as a counter
+0015 50 ; 	A=0		//start with channel 0
+0016 0E ; loopA:Q=port[A]	//read channel	
+0017 4F ; 	Q--		//decrement whatever was read
+0018 1E ; 	port[A]=Q	//write back
+0019 51 ; 	A++		//next channel
+001A 5A ; 	B--		//count down
+001B F9 FA ; 	IF(B != 0) GOTO loopA	//repeat unless we covered all 4 channels
+001D FE F2 ; 	GOTO loopB	//continue indefinitely	
+001F FF ; 	STOP		//should never get here
+; //end of test program!

@@ -142,7 +142,7 @@ begin
    return temp_mem;
 end init_bytememory;
 
-constant prog_from_file: rom64x8 := init_bytememory("testprog1.coe", 64, x"FF");
+constant prog_from_file: rom64x8 := init_bytememory("testprog1.mif", 64, x"FF");
 
 constant prog_from_inline: rom64x8 := 
 (
