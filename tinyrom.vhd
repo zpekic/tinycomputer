@@ -58,9 +58,7 @@ end char2hex;
 
 impure function init_bytememory(mif_file_name : in string; depth: in integer; default_value: std_logic_vector(7 downto 0)) return rom64x8 is
     file mif_file : text open read_mode is mif_file_name;
-	 --file dbg_file : text open write_mode is "memory.txt";
     variable mif_line : line;
-	 --variable dbg_line : line;
 	 variable char: character;
 	 variable line_cnt: integer := 1;
 	 variable isOk: boolean;
@@ -93,7 +91,7 @@ begin
 						report "init_mem(): comment detected, rest is ignored";
 						exit;
 					when '0' to '9'|'a' to 'f'|'A' to 'F' =>
-						report "init_mem(): hex char detected";
+						--report "init_mem(): hex char detected";
 						case hex_cnt is
 							when 0 =>
 								byte_address := x"000" & std_logic_vector(to_unsigned(char2hex(char), 4));
@@ -142,12 +140,12 @@ begin
    return temp_mem;
 end init_bytememory;
 
-constant prog_from_file: rom64x8 := init_bytememory("testprog1.mif", 64, x"FF");
+constant prog_from_file: rom64x8 := init_bytememory("testprog\prog1.mif", 64, x"FF");
 
 constant prog_from_inline: rom64x8 := 
 (
-	0 => x"50", -- A=0
-	1 => x"58", -- B=0
+	0 => x"54", -- A=0
+	1 => x"5C", -- B=0
 	2 => x"0E", -- Q = port[A]
 	3 => x"1E", -- port[A] = Q
 	4 => x"51", -- A++
@@ -168,7 +166,7 @@ constant prog_from_inline: rom64x8 :=
 	18 => x"59", -- B++
 	19 => x"59", -- B++
 	20 => x"59", -- B++
-	21 => x"50", -- A=0
+	21 => x"54", -- A=0
 	22 => x"0E", -- loopA: Q=port[A]
 	23 => x"4F", -- Q--
 	24 => x"1E", -- port[A]=Q

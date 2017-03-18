@@ -39,17 +39,27 @@ constant RAMD, NOTRS, DA: std_logic_vector(2 downto 0) := "101";
 constant RAMQU, EXOR, DQ: std_logic_vector(2 downto 0) := "110";
 constant RAMU, EXNOR, DZ: std_logic_vector(2 downto 0) := "111";
 
-constant am2901_noop: std_logic_vector(8 downto 0) := NOP & IOR & DZ; -- (137)
+constant Y_ENABLE: std_logic := '0';
+constant Y_DISABLE: std_logic := '1';
+
+constant am2901_noop: std_logic_vector(9 downto 0) := Y_DISABLE & NOP & IOR & DZ; -- (137)
 
 constant opcode_INP: unsigned := x"0"; -- Q = port[0..13], Q = port[A], Q = port[B]
 constant opcode_OUT: unsigned := x"1"; -- port[0..13] = Q, port[A] = Q, port[B] = Q
-constant opcode_LDQ: unsigned := x"2";
-constant opcode_CPQ: unsigned := x"3";
-constant opcode_ADQ: unsigned := x"4";
+constant opcode_LDQ: unsigned := x"2"; -- load immediate
+constant opcode_CPQ: unsigned := x"3"; -- compare immediate
+constant opcode_ADQ: unsigned := x"4"; -- add quick
 constant opcode_IRO: unsigned := x"5"; -- index register operations
-constant opcode_QTR: unsigned := x"6";
-constant opcode_RTQ: unsigned := x"7";
-constant opcode_BRA: unsigned := x"F";
+constant opcode_RTL: unsigned := x"6"; -- rotate left ( *2)
+constant opcode_RTR: unsigned := x"7"; -- rotate right ( /2)
+constant opcode_ADC: unsigned := x"8"; -- add with carry
+constant opcode_SBC: unsigned := x"9"; -- subtract with !carry
+constant opcode_AND: unsigned := x"A"; -- logical and
+constant opcode_IOR: unsigned := x"B"; -- logical or
+constant opcode_XOR: unsigned := x"C"; -- logical xor
+constant opcode_FLG: unsigned := x"D"; -- flag operations (set, reset)
+constant opcode_RES: unsigned := x"E"; -- reserved for future use
+constant opcode_BRA: unsigned := x"F"; -- branch instructions
 
 end tinycpu_common;
 

@@ -34,27 +34,27 @@ use work.tinycpu_common.all;
 entity gal_instrmapper is
     Port ( macro_i : in  STD_LOGIC_VECTOR (7 downto 0);
            execute : in  STD_LOGIC;
-           micro_i : out  STD_LOGIC_VECTOR (8 downto 0));
+           micro_i : out  STD_LOGIC_VECTOR (9 downto 0));
 end gal_instrmapper;
 
 architecture Behavioral of gal_instrmapper is
 
-type rom16x10 is array(0 to 15) of std_logic_vector(8 downto 0);
+type rom16x10 is array(0 to 15) of std_logic_vector(9 downto 0);
 constant mapper: rom16x10 := 
 (
-	0 => QREG & IOR & DZ, -- Q = channel[imm] (E = channel[A], F = channel[B])
-	1 => NOP & IOR & ZQ, -- channel[imm] = Q  (E = channel[A], F = channel[B])
-	2 => QREG & IOR & DZ, -- Q = imm
-	3 => NOP & SUBR & DQ, -- Q - imm
-	4 => QREG & ADD & DQ, -- Q = Q + imm
-	5 => NOP & IOR & ZQ, -- A = 0, A++, A--, A = immediate, A = 0xC, A = 0xD, A = 0xE, A = 0xF, B...
-	6 => RAMF & IOR & ZQ, -- reg[B+off] = Q
-	7 => QREG & IOR & ZB, -- Q = reg[B+off]
-	8 => QREG & ADD & AQ, -- Q = Q + reg[A+off] + Carry
-	9 => QREG & SUBR & AQ, -- Q = Q - reg[A+off] + !Carry
-	10 => QREG & LAND & AQ, -- Q = Q and reg[a+off]
-	11 => QREG & IOR & AQ, -- Q = Q or reg[a+off]
-	12 => QREG & EXOR & AQ, -- Q = Q xor reg[a+off]
+	0 => Y_DISABLE & QREG & IOR & DZ, -- Q = channel[imm] (E = channel[A], F = channel[B])
+	1 => Y_ENABLE  & NOP & IOR & ZQ, -- channel[imm] = Q  (E = channel[A], F = channel[B])
+	2 => Y_DISABLE & QREG & IOR & DZ, -- Q = imm
+	3 => Y_DISABLE & NOP & SUBR & DQ, -- Q - imm
+	4 => Y_DISABLE & QREG & ADD & DQ, -- Q = Q + imm
+	5 => Y_ENABLE  & NOP & IOR & ZQ, -- NOP, A++, A--, A = Q, A = 0x0, A = 0x4, A = 0x8, A = 0xC, NOP, B++, B--, ...
+	6 => Y_DISABLE & RAMU & IOR & ZB, -- X << reg[imm] << X (E = reg[A], F = reg[B])
+	7 => Y_DISABLE & RAMD & IOR & ZB, -- X >> rag[imm[ >> X (E = reg[A], F = reg[B])
+	8 => Y_DISABLE & QREG & ADD & AQ, -- Q = Q + reg[imm] + Carry (E = reg[A], F = reg[B])
+	9 => Y_DISABLE & QREG & SUBR & AQ, -- Q = Q - reg[imm] + !Carry (E = reg[A], F = reg[B])
+	10 => Y_DISABLE & QREG & LAND & AQ, -- Q = Q and reg[imm] (E = reg[A], F = reg[B])
+	11 => Y_DISABLE & QREG & IOR & AQ, -- Q = Q or reg[imm] (E = reg[A], F = reg[B])
+	12 => Y_DISABLE & QREG & EXOR & AQ, -- Q = Q xor reg[imm] (E = reg[A], F = reg[B])
 	13 => am2901_noop, -- set / reset flags
 	14 => am2901_noop, -- NOP
 	15 => am2901_noop -- if (cond) goto ...

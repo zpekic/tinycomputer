@@ -273,10 +273,10 @@ begin
 	write_port: process(reset, nio_write)
 	begin
 		if (reset = '1') then
-			data_port(0) <= x"F";
-			data_port(1) <= x"F";
-			data_port(2) <= x"F";
-			data_port(3) <= x"F";
+			data_port(0) <= x"f";
+			data_port(1) <= x"e";
+			data_port(2) <= x"e";
+			data_port(3) <= x"b";
 		else
 			if (rising_edge(nIo_write)) then
 				--if (nIo_write = '0') then

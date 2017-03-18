@@ -65,7 +65,7 @@ begin
 			if (enable = '1') then
 				case operation is
 					when "000" =>
-						index_val <= x"0";
+						index_val <= index_val; -- opcodes 50 and 58 are NOP
 					when "001" =>
 						index_val <= index_val + 1;
 					when "010" =>
@@ -73,13 +73,13 @@ begin
 					when "011" =>
 						index_val <= unsigned(data);
 					when "100" =>
-						index_val <= x"C";
+						index_val <= x"0";
 					when "101" =>
-						index_val <= x"D";
+						index_val <= x"4";
 					when "110" =>
-						index_val <= x"E";
+						index_val <= x"8";
 					when "111" =>
-						index_val <= x"F";
+						index_val <= x"C";
 					when others =>
 						null;
 				end case;
