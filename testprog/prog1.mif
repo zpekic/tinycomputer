@@ -28,6 +28,5 @@
 0019 51 ; 	A++		//next channel
 001A 5A ; 	B--		//count down
 001B FE FA ; 	IF(B != 0) GOTO loopA	//repeat unless we covered all 4 channels
-001D FF F2 ; 	GOTO loopB	//continue indefinitely	
-001F FF ; 	STOP		//should never get here
+001D F6 F2 ; 	GOTO loopB	//continue indefinitely	
 ; //end of test program!

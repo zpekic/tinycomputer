@@ -29,18 +29,19 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+use work.tinycpu_common.all;
+
 entity gal_brancher is
     Port ( reset : in  STD_LOGIC;
            clock : in  STD_LOGIC;
            i : in  STD_LOGIC_VECTOR (7 downto 0);
            condition : in  STD_LOGIC_VECTOR (7 downto 0);
            execute : buffer  STD_LOGIC;
-           branch : buffer  STD_LOGIC);
+           branch : buffer  STD_LOGIC;
+			  callorreturn: buffer STD_LOGIC);
 end gal_brancher;
 
 architecture Behavioral of gal_brancher is
-
-constant opcode_branch: std_logic_vector(3 downto 0) := x"F";
 
 alias current_opcode: std_logic_vector(3 downto 0) is i(7 downto 4);
 alias condition_invert: std_logic is i(3);
@@ -65,26 +66,34 @@ begin
 	if (reset = '1') then
 		execute <= '1';
 		branch <= '0';
+		callorreturn <= '0';
 	else
 		if (rising_edge(clock)) then
 				if (execute = '1') then
-					if (current_opcode = opcode_branch) then
+					if (current_opcode = std_logic_vector(opcode_BRA)) then
 						-- next PC will be at offset, so don't interpret as instruction
 						execute <= '0';
 						-- capture the branch flag for next cycle
 						branch <= condition_invert xor condition_selected;
-
+						-- determine if next cycle will be call or return
+						if (condition_select = "111") then
+							callorreturn <= '1'; 
+						else
+							callorreturn <= '0'; 
+						end if;
 					else
 						-- this was a regular 1 byte instruction, next PC will point to one too
 						execute <= '1';
-						-- this value will be ignored, but set to 0 for consistency
+						-- these values will be ignored, but set to 0 for consistency
 						branch <= '0';
+						callorreturn <= '0';
 					end if;
 				else
 					-- PC is pointing to branch offset, therefore next cycle should be executed
 					execute <= '1';
-					-- this value will be ignored, but set to 0 for consistency
+					-- these values will be ignored, but set to 0 for consistency
 					branch <= '0';
+					callorreturn <= '0';
 				end if;
 		end if;
 	end if;

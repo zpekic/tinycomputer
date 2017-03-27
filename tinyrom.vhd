@@ -20,6 +20,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use STD.textio.all;
+use ieee.std_logic_textio.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -29,6 +30,8 @@ use IEEE.NUMERIC_STD.ALL;
 -- any Xilinx primitives in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
+
+use work.tinycpu_common.all;
 
 entity tinyrom is
     Port ( address : in  STD_LOGIC_VECTOR (9 downto 0);
@@ -56,39 +59,47 @@ begin
 	return 0;
 end char2hex;
 
-impure function init_bytememory(mif_file_name : in string; depth: in integer; default_value: std_logic_vector(7 downto 0)) return rom64x8 is
+impure function init_bytememory(mif_file_name : in string; hex_file_name: in string; depth: in integer; default_value: std_logic_vector(7 downto 0)) return rom64x8 is
+    variable temp_mem : rom64x8;-- := (others => (others => default));
+	 -- mif file variables
     file mif_file : text open read_mode is mif_file_name;
     variable mif_line : line;
 	 variable char: character;
 	 variable line_cnt: integer := 1;
 	 variable isOk: boolean;
-    variable temp_mem : rom64x8;-- := (others => (others => default));
 	 variable byte_address: std_logic_vector(15 downto 0);
 	 variable byte_value: std_logic_vector(7 downto 0);
+	 variable byte_offset: integer;
 	 variable hex_cnt: integer;
+	 -- hex file variables
+	 file hex_file : text open write_mode is hex_file_name;
+	 variable hex_line : line;
+	 variable checksum: integer;
+
 	 
 begin
 	 -- fill with default value
 	 for i in 0 to depth - 1 loop	
 		temp_mem(i) := default_value;
 	 end loop;
-	 report "init_mem(): initialized " & integer'image(depth) & " bytes of memory to " & integer'image(to_integer(unsigned(default_value))) severity note;
+	 report "init_bytememory(): initialized " & integer'image(depth) & " bytes of memory to " & integer'image(to_integer(unsigned(default_value))) severity note;
 	 -- parse the file for the data
-	 report "init_mem(): loading memory from file " & mif_file_name severity note;
+	 report "init_bytememory(): loading memory from file " & mif_file_name severity note;
 	 while not endfile(mif_file) loop --till the end of file is reached continue.
       readline (mif_file, mif_line);
 		--next when mif_line'length = 0;  -- Skip empty lines
 		report "init_mem(): line " & integer'image(line_cnt) & " read";
 		isOk := true;
 		hex_cnt := 0;
+		byte_offset := 0;
 		while isOk = true loop
 			read(mif_line, char, isOk);
 			if (isOk) then
 				case char is
 					when ' ' =>
-						report "init_mem(): space detected";
+						report "init_bytememory(): space detected";
 					when ';' =>
-						report "init_mem(): comment detected, rest is ignored";
+						report "init_bytememory(): comment detected, rest is ignored";
 						exit;
 					when '0' to '9'|'a' to 'f'|'A' to 'F' =>
 						--report "init_mem(): hex char detected";
@@ -99,28 +110,23 @@ begin
 								byte_address := byte_address(11 downto 0) & std_logic_vector(to_unsigned(char2hex(char), 4));
 							when 3 =>
 								byte_address := byte_address(11 downto 0) & std_logic_vector(to_unsigned(char2hex(char), 4));
-								report "init_mem(): address parsed";
-							when 4 =>
+								report "init_bytememory(): address parsed";
+							when 4|6|8|10 =>
 								byte_value := x"0" & std_logic_vector(to_unsigned(char2hex(char), 4));
-							when 5 =>
+							when 5|7|9|11 =>
 								byte_value := byte_value(3 downto 0) & std_logic_vector(to_unsigned(char2hex(char), 4));
-								temp_mem(to_integer(unsigned(byte_address)) + 0) := byte_value;
-								report "init_mem(): 1st byte set";
-							when 6 =>
-								byte_value := x"0" & std_logic_vector(to_unsigned(char2hex(char), 4));
-							when 7 =>
-								byte_value := byte_value(3 downto 0) & std_logic_vector(to_unsigned(char2hex(char), 4));
-								temp_mem(to_integer(unsigned(byte_address)) + 1) := byte_value;
-								report "init_mem(): 2nd byte set";
+								temp_mem(to_integer(unsigned(byte_address)) + byte_offset) := byte_value;
+								report "init_bytememory(): byte " & integer'image(byte_offset) & " set.";
+								byte_offset := byte_offset + 1;
 							when others =>
-								assert false report "init_mem(): too many bytes specified in line" severity failure; 
+								assert false report "init_bytememory(): too many bytes specified in line" severity failure; 
 						end case;
 						hex_cnt := hex_cnt + 1;
 					when others =>
-						assert false report "init_mem(): unexpected char in line " & integer'image(line_cnt) severity failure; 
+						assert false report "init_bytememory(): unexpected char in line " & integer'image(line_cnt) severity failure; 
 				end case;
 			else
-				report "init_mem(): end of line " & integer'image(line_cnt) & " reached";
+				report "init_bytememory(): end of line " & integer'image(line_cnt) & " reached";
 			end if;
 		end loop;
 		
@@ -129,18 +135,29 @@ begin
  
 	file_close(mif_file);
 	
-	for i in 0 to depth - 1 loop	
-		--write(dbg_line, i);
-		--write(dbg_line, temp_mem(i));
-		--writeline(dbg_file, dbg_line);
-		report integer'image(to_integer(unsigned(temp_mem(i))));
+	-- dump memory content to Intel hex-format like file
+	for i in 0 to (depth - 1) / 16 loop
+		write(hex_line, ": 10 "); -- 16 bytes per line
+		hwrite(hex_line, std_logic_vector(to_unsigned(i * 16, 16)));
+		write(hex_line, " 00 "); -- regular data line marker
+		checksum := 0;
+		for j in 0 to 15 loop
+			hwrite(hex_line, temp_mem(i * 16 + j));
+			checksum := checksum + to_integer(unsigned(temp_mem(i * 16 + j)));
+			write(hex_line, " ");
+		end loop;
+		hwrite(hex_line, std_logic_vector(to_unsigned(0  - checksum, 8)));
+		writeline(hex_file, hex_line);
    end loop;
-	--file_close(dbg_file);
+	write(hex_line, ": 00 0000 01 FF"); -- last line marker
+	writeline(hex_file, hex_line); -- write last line
+	file_close(hex_file);
 		
    return temp_mem;
+	
 end init_bytememory;
 
-constant prog_from_file: rom64x8 := init_bytememory("testprog\prog1.mif", 64, x"FF");
+constant prog_from_file: rom64x8 := init_bytememory("testprog\prog3.mif", "testprog\prog3.hex", 64, tinycpu_NOPA);
 
 constant prog_from_inline: rom64x8 := 
 (

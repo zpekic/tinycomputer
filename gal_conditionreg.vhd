@@ -39,8 +39,8 @@ entity gal_conditionreg is
            alu_z : in  STD_LOGIC;
            alu_v : in  STD_LOGIC;
            alu_n : in  STD_LOGIC;
-           alu_xleft : in  STD_LOGIC;
-           alu_xright : in  STD_LOGIC;
+           alu_x3 : inout  STD_LOGIC;
+           alu_x0 : inout  STD_LOGIC;
            flags : buffer  STD_LOGIC_VECTOR (4 downto 0));
 end gal_conditionreg;
 
@@ -59,7 +59,6 @@ alias v: std_logic is flags(2);
 alias n: std_logic is flags(3);
 alias x: std_logic is flags(4);
 
-
 begin
 
 opcode <= unsigned(operation);
@@ -75,6 +74,9 @@ with bitselect select
 				"10000000" when "111",
 				"00000000" when others;
 
+alu_x3 <= x when (opcode = opcode_RTR and execute = '1') else 'Z';
+alu_x0 <= x when (opcode = opcode_RTL and execute = '1') else 'Z';
+
 update_flags: process(clock, execute) 
 begin
 	if (execute = '1') then
@@ -88,19 +90,29 @@ begin
 					z <= alu_z;
 					v <= alu_v;
 					n <= alu_n;
+				when opcode_RTL =>
+					x <= alu_x3;
+					z <= alu_z;
+					v <= alu_v;
+					n <= alu_n;
+				when opcode_RTR =>
+					x <= alu_x0;
+					z <= alu_z;
+					v <= alu_v;
+					n <= alu_n;
 				when opcode_FLG =>
 					if (invertmask = '1') then
-						c <= c and (not mask(0));
-						z <= z and (not mask(1));
-						v <= v and (not mask(2));
-						n <= n and (not mask(3));
-						x <= x and (not mask(4));
+						c <= c and (not mask(0)); -- E8 (opcode) FLAGS.C = 0
+						z <= z and (not mask(1)); -- E9
+						v <= v and (not mask(2)); -- EA
+						n <= n and (not mask(3)); -- EB
+						x <= x and (not mask(4)); -- EC 
 					else
-						c <= c or mask(0);
-						z <= z or mask(1);
-						v <= v or mask(2);
-						n <= n or mask(3);
-						x <= x or mask(4);
+						c <= c or mask(0);			-- E0 (opcode) FLAGS.C = 1
+						z <= z or mask(1);			-- E1
+						v <= v or mask(2);			-- E2
+						n <= n or mask(3);			-- E3
+						x <= x or mask(4);			-- E4
 					end if;
 				when others =>
 					null;

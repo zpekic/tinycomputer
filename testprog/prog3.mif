@@ -1,54 +1,38 @@
-; 		//Test program 2
+; 		//Test program 3
 ; 		.org 0	//fill program memory starting at location 0
-0000 00 ;loop:	Q = INPUT[0]
-0001 5B ; 	B = Q
-0002 50 ;dsp2: 	A = 0
-0003 51 ; 	A++
-0004 51 ;       A++
-0005 51 ; 	A++ 
-0006 1E ;disp: 	OUTPUT[A] = Q
-0007 52 ; 	A--
-0008 FD FD;	IF(A != 0) GOTO disp 
-000A 1E ; 	OUTPUT[A] = Q
-000B 4F ; 	Q--
-000C 5A ;	B--
-000D FE F4;	IF (B != 0) GOTO dsp2
-000F FF F0;     GOTO loop
+0000 55 ;	   A = 4
+0001 50 ;   init:  NOP
+0002 52 ;	   A--
+0003 20 ;	   Q = 0
+0004 DE ;          R[A] = Q 
+0005 FD FB;        IF (A != 0) GOTO init
+0007 50 ; 	   NOP
+0008 E4 ; 	   FLAGS.X = 1
+0009 FF 07 ;loop:  CALL dsplay
+000B FF 0F ; 	   CALL rotate
+000D F4 FB ;	   IF(FLAGS.X) GOTO loop 
+000F FC F9 ; 	   IF(!FLAGS.X) GOTO loop
+;--------------------------------------
+0011 58 ;dsply: NOP
+0012 5D ;	B = 4
+0013 5A ;dloop:	B--
+0014 2F ;       Q = 0xF
+0015 AF ;	Q = Q & R[B]
+0016 1F ;	OUT[B] = Q
+0017 FE FB ;	IF (B != 0) GOTO dloop
+0019 F7 01 ;	RETURN
+;--------------------------------------
+001B 58 ;rotate:NOP
+0000 00 ;       Q = INP[0]
+0000 F1 07;     IF(FLAGS.Z) GOTO rdown
+001C 60 ;rup:	R[0] << 1
+001D 61 ;	R[1] << 1
+001E 62 ;	R[2] << 1
+001F 63 ;	R[3] << 1
+0020 F7 01 ;	RETURN
+0000 73 ;rdown: R[3] >> 1
+0000 72 ;       R[2] >> 1
+0000 71 ;       R[1] >> 1
+0000 70 ;       R[0] >> 1
+0000 F7 01;     RETURN
 ; //end of test program!
-
-// Get the data from channels and store to regs
-0000 24; q = 4
-0001 53; a = q
-;	 repeat
-0002 52;	a--
-0003 0E;	q = input[a]
-0004 ??;	r[a] = q
-0005 ?? ??;until (a == 0)
-;// display and rotate 4 times
-24; q = 4
-5B; b = q
-while (b != 0)
-	// display
-	q = 4
-	a = q
-	repeat
-52;		a--
-		q = r[a]
-		output[a] = q
-	until (a == 0)
-	// set x to r3.3 
-	flags.x = 0
-	q = r[3]
-	if (flags.n) 
-		flags.x = 1
-	end if
-	// rotate up 1 bit
-	r[0] << 1
-	r[1] << 1
-	r[2] << 1
-	r[3] << 1
-	b--
-end while
-
-
-

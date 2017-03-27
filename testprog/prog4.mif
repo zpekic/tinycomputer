@@ -1,0 +1,21 @@
+; 		//Test program 4
+; 		.org 0	//fill program memory starting at location 0
+0000 E0;	        FLAGS.C = 1
+0001 E1;		FLAGS.Z = 1
+0002 E2;		FLAGS.V = 1
+0003 E3;		FLAGS.N = 1
+0004 E8;	loop:   FLAGS.C = 0
+0005 E9;		FLAGS.Z = 0
+0006 EA;		FLAGS.V = 0
+0007 EB;		FLAGS.N = 0
+0008 00;		Q = INPUT[0] 	// read value from port 0
+0009 F1 07;		IF (FLAGS.Z) GOTO isZero
+000B F3 08;     	IF (FLAGS.N) GOTO isNeg
+000D E0; 		FLAGS.C = 1
+000E E2;        	FLAGS.V = 1
+000F FF F4; 		GOTO loop
+0011 E9; 	isZero:	FLAGS.Z = 0
+0012 FF F1; 		GOTO loop
+0014 EB;	isNeg:	FLAGS.N = 0 
+0015 FF EE; 		GOTO loop
+0017 FF FF;     	STOP

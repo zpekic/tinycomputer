@@ -49,14 +49,14 @@ constant mapper: rom16x10 :=
 	4 => Y_DISABLE & QREG & ADD & DQ, -- Q = Q + imm
 	5 => Y_ENABLE  & NOP & IOR & ZQ, -- NOP, A++, A--, A = Q, A = 0x0, A = 0x4, A = 0x8, A = 0xC, NOP, B++, B--, ...
 	6 => Y_DISABLE & RAMU & IOR & ZB, -- X << reg[imm] << X (E = reg[A], F = reg[B])
-	7 => Y_DISABLE & RAMD & IOR & ZB, -- X >> rag[imm[ >> X (E = reg[A], F = reg[B])
+	7 => Y_DISABLE & RAMD & IOR & ZB, -- X >> reg[imm] >> X (E = reg[A], F = reg[B])
 	8 => Y_DISABLE & QREG & ADD & AQ, -- Q = Q + reg[imm] + Carry (E = reg[A], F = reg[B])
 	9 => Y_DISABLE & QREG & SUBR & AQ, -- Q = Q - reg[imm] + !Carry (E = reg[A], F = reg[B])
 	10 => Y_DISABLE & QREG & LAND & AQ, -- Q = Q and reg[imm] (E = reg[A], F = reg[B])
 	11 => Y_DISABLE & QREG & IOR & AQ, -- Q = Q or reg[imm] (E = reg[A], F = reg[B])
 	12 => Y_DISABLE & QREG & EXOR & AQ, -- Q = Q xor reg[imm] (E = reg[A], F = reg[B])
-	13 => am2901_noop, -- set / reset flags
-	14 => am2901_noop, -- NOP
+	13 => Y_DISABLE & RAMF & IOR & ZQ, -- reg[imm] = Q (E = reg[A], F = reg[B])
+	14 => am2901_noop, -- set / reset flags
 	15 => am2901_noop -- if (cond) goto ...
 );
 

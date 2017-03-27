@@ -2,7 +2,7 @@
 ; 		.org 0	//fill program memory starting at location 0
 0000 00 ;loop:	Q = INPUT[0] 	// read value from port 0
 0001 5B ; 	B = Q		// store to b to initialize count
-0002 5C ;dsp2: 	A = 0		
+0002 54 ;dsp2: 	A = 0		
 0003 51 ; 	A++
 0004 51 ;       A++
 0005 51 ; 	A++ 
@@ -13,5 +13,5 @@
 000B 4F ; 	Q--		// decrement q
 000C 5A ;	B--		// decrement counter
 000D FE F4;	IF (B != 0) GOTO dsp2 //repeat until 0 reached
-000F FF F0;     GOTO loop
+000F F6 F0;     GOTO loop
 ; //end of test program!

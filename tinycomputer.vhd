@@ -277,6 +277,10 @@ begin
 			data_port(1) <= x"e";
 			data_port(2) <= x"e";
 			data_port(3) <= x"b";
+			-- turn on all digits
+			data_port(14) <= "1111";
+			-- turn on all dots
+			data_port(15) <= "1111";
 		else
 			if (rising_edge(nIo_write)) then
 				--if (nIo_write = '0') then
@@ -318,23 +322,25 @@ begin
 												);
 	-- connect to 4 display LEDs
 	muxled: mux16to4 port map (
-								a => status_bus(3 downto 0),   -- no debug, status.low
-								b => status_bus(7 downto 4),   -- no debug, status.high 
-								c(3) => '1',   -- debug io
-								c(2) => '1',
-								c(1) => nIo_Read,
-								c(0) => nIo_Write,
-								d(3) => '1',   -- debug io
-								d(2) => '1',
-								d(1) => nIo_Read,
-								d(0) => nIo_Write,
+								a => status_bus(7 downto 4),   -- NVZC
+								b => status_bus(7 downto 4),   -- NVZC 
+								c => status_bus(7 downto 4),   -- NVZC 
+								d => status_bus(7 downto 4),   -- NVZC 
+								--c(3) => '1',   -- debug io
+								--c(2) => '1',
+								--c(1) => nIo_Read,
+								--c(0) => nIo_Write,
+								--d(3) => '1',   -- debug io
+								--d(2) => '1',
+								--d(1) => nIo_Read,
+								--d(0) => nIo_Write,
 								y => led4,
 								nEnable => '0',
 								sel(1) => debug_enable,
 								sel(0) => debug_rom
 									);
 	-- dim the LEDs just like the 7seg display
-   LED(3) <= adc_to_pwm and led4(0);
+	LED(3) <= adc_to_pwm and led4(0);
    LED(2) <= adc_to_pwm and led4(1);
    LED(1) <= adc_to_pwm and led4(2);
    LED(0) <= adc_to_pwm and led4(3);
@@ -367,14 +373,8 @@ begin
            digsel(1) => freq128,
 			  digsel(0) => freq64,
            showsegments => led_dimmer,
-           showdigit(3) => '1',
-           showdigit(2) => '1',
-           showdigit(1) => '1',
-           showdigit(0) => '1',
-           showdot(3) => '0',
-			  showdot(2) => '0',
-			  showdot(1) => '0',
-			  showdot(0) => '0',
+			  showdigit => data_port(14),
+			  showdot => data_port(15),
            anode => AN,
 			  segment(7) => DOT,
            segment(6 downto 0) => A_TO_G

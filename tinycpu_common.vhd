@@ -57,9 +57,12 @@ constant opcode_SBC: unsigned := x"9"; -- subtract with !carry
 constant opcode_AND: unsigned := x"A"; -- logical and
 constant opcode_IOR: unsigned := x"B"; -- logical or
 constant opcode_XOR: unsigned := x"C"; -- logical xor
-constant opcode_FLG: unsigned := x"D"; -- flag operations (set, reset)
-constant opcode_RES: unsigned := x"E"; -- reserved for future use
-constant opcode_BRA: unsigned := x"F"; -- branch instructions
+constant opcode_XRR: unsigned := x"D"; -- logical xor (destination to register)
+constant opcode_FLG: unsigned := x"E"; -- flag operations (set, reset)
+constant opcode_BRA: unsigned := x"F"; -- branch / call / return instructions
+
+constant tinycpu_NOPA: std_logic_vector(7 downto 0) := x"50";
+constant tinycpu_NOPB: std_logic_vector(7 downto 0) := x"58";
 
 end tinycpu_common;
 
@@ -91,4 +94,4 @@ package body tinycpu_common is
 --    
 --  end <procedure_name>;
  
-end tinycpu_common;
+end package body;

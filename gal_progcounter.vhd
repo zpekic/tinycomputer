@@ -35,27 +35,53 @@ entity gal_progcounter is
            macro_i : in  STD_LOGIC_VECTOR (7 downto 0);
            execute : in  STD_LOGIC;
            branch : in  STD_LOGIC;
+			  callorreturn: in STD_LOGIC;
            pc : buffer  STD_LOGIC_VECTOR (9 downto 0));
 end gal_progcounter;
 
 architecture Behavioral of gal_progcounter is
 
+type mem4x10 is array (0 to 3) of std_logic_vector(9 downto 0);
+
 signal branchoffset: std_logic_vector(9 downto 0);
+signal stack: mem4x10;
+signal sp: integer range 0 to 3;
 
 begin
 
 branchoffset <= "00" & macro_i when (macro_i(7) = '0') else "11" & macro_i;
+pc <= stack(sp);
 
 update_pc: process(reset, clock, execute, branch)
 begin
 	if (reset = '1') then
-		pc <= "0000000000";
+		stack(0) <= "0000000000";
+		sp <= 0;
 	else
 		if (rising_edge(clock)) then
-			if (branch = '1' and execute = '0') then
-				pc <= std_logic_vector(unsigned(pc) + unsigned(branchoffset));
+			if (execute = '1') then
+				-- CONTINUE
+				stack(sp) <= std_logic_vector(unsigned(stack(sp)) + 1);
 			else
-				pc <= std_logic_vector(unsigned(pc) + 1);
+				if (callorreturn = '1') then
+					if (branch = '1') then
+						-- CALL
+						stack(sp + 1) <= std_logic_vector(unsigned(stack(sp)) + unsigned(branchoffset));
+						sp <= sp + 1;
+					else
+						-- RETURN
+						stack(sp - 1) <= std_logic_vector(unsigned(stack(sp - 1)) + unsigned(branchoffset));
+						sp <= sp - 1;
+					end if;
+				else
+					if (branch = '1') then
+						-- BRANCH
+						stack(sp) <= std_logic_vector(unsigned(stack(sp)) + unsigned(branchoffset));
+					else
+						-- DO NOT BRANCH
+						stack(sp) <= std_logic_vector(unsigned(stack(sp)) + 1);
+					end if;
+				end if;
 			end if;
 		end if;
 	end if;
