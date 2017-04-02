@@ -41,6 +41,7 @@ entity tinycpu is
            nIo_write : buffer  STD_LOGIC;
            io_address : buffer  STD_LOGIC_VECTOR (3 downto 0);
            status : out  STD_LOGIC_VECTOR (7 downto 0);
+			  step: in STD_LOGIC;
            debug_port : out  STD_LOGIC_VECTOR (15 downto 0));
 end tinycpu;
 
@@ -100,19 +101,24 @@ component gal_conditionreg is
            alu_n : in  STD_LOGIC;
            alu_x3 : inout  STD_LOGIC;
            alu_x0 : inout  STD_LOGIC;
-           flags : buffer  STD_LOGIC_VECTOR (4 downto 0));
+           flags : buffer  STD_LOGIC_VECTOR (7 downto 0));
 end component;
 
 component gal_glue is
     Port ( 
-			  clk: in STD_LOGIC;
+			  reset: in STD_LOGIC;
+			  clock: in STD_LOGIC;
 			  i : in  STD_LOGIC_VECTOR (7 downto 0);
 			  nRead: in STD_LOGIC;
 			  nWrite: in STD_LOGIC;
 			  nIo_Read: out STD_LOGIC;
 			  nIo_Write: out STD_LOGIC;
            carry_in : in  STD_LOGIC;
-           carry_out : out  STD_LOGIC);
+           carry_out : out  STD_LOGIC;
+			  execute: in STD_LOGIC;
+			  ss_mode: in STD_LOGIC;
+			  step: in STD_LOGIC;
+			  ss_clock: out STD_LOGIC);
 end component;
 
 component gal_addrmux is
@@ -158,10 +164,12 @@ signal execute, callorreturn, branch: std_logic;
 
 signal data_bus: std_logic_vector(3 downto 0);
 signal addr_bus: std_logic_vector(3 downto 0);
-signal flags: std_logic_vector(4 downto 0);
+signal flags: std_logic_vector(7 downto 0);
 signal f_0: std_logic;
 signal am2901_cin, am2901_cout, am2901_v, am2901_z, am2901_n, am2901_r3, am2901_r0: std_logic;
 signal nOutputEnable: std_logic;
+
+signal ss_clock: std_logic;
 
 begin
 
@@ -169,12 +177,14 @@ begin
 	io_address <= addr_bus;
 	
 	-- status outputs
-	status(4 downto 0) <= flags;
-	--status(0) <= addrAIsZero;
-	--status(1) <= addrBIsZero;
+	status(4 downto 0) <= flags(4 downto 0); -- X N V Z C
+	--status(0) <= clock;
+	--status(1) <= flags(7);
+	--status(2) <= step;
+	--status(3) <= ss_clock;
 	status(5) <= branch;
-	status(6) <= callorreturn;
-	status(7) <= execute;
+	status(6) <= execute;
+	status(7) <= flags(7); -- Single step
 
 	-- debug output
 	debug_port(2 downto 0) <= microinstruction(2 downto 0);
@@ -189,14 +199,19 @@ begin
 
 glue: gal_glue port map
     ( 
-		clk => clock,
+	   reset => reset,
+		clock => clock,
 		i => i,
 		nRead => nRead,
 		nWrite => nWrite,
 		nIo_Read => nIo_Read,
 		nIo_Write => nIo_Write,
       carry_in => flags(0), -- carry flag bit from status register
-      carry_out => am2901_cin -- carry into Am2901
+      carry_out => am2901_cin, -- carry into Am2901
+		execute => execute,
+	   ss_mode => flags(7),
+	   step => step,
+		ss_clock => ss_clock
 	 );
 	 
 addrmux: gal_addrmux port map
@@ -210,7 +225,7 @@ addrmux: gal_addrmux port map
 progcounter: gal_progcounter port map 
    ( 
 		reset => reset,
-      clock => clock,
+      clock => ss_clock,
       macro_i => i,
       execute => execute,
       branch => branch,
@@ -238,7 +253,7 @@ data_mux: gal_datamux port map
 indexreg_a: gal_indexreg port map 
 		( 
          reset => reset,
-			clock => clock,
+			clock => ss_clock,
 			sel => '0',
          macro_i => i,
 			data => io_data,
@@ -249,7 +264,7 @@ indexreg_a: gal_indexreg port map
 indexreg_b: gal_indexreg port map 
 		( 
 		   reset => reset,
-			clock => clock,
+			clock => ss_clock,
 			sel => '1',
          macro_i => i,
 			data => io_data,
@@ -260,7 +275,7 @@ indexreg_b: gal_indexreg port map
 brancher: gal_brancher Port map
 		( 
 			reset => reset,
-         clock => clock,
+         clock => ss_clock,
          i => i,
          condition(0) => flags(0), --F0: C, F8: !C
          condition(1) => flags(1), --F1: Z, F9: !Z
@@ -277,7 +292,7 @@ brancher: gal_brancher Port map
 			  
 conditionreg: gal_conditionreg port map
     ( 
-			  clock => clock,
+			  clock => ss_clock,
 			  execute => execute,
            i => i,
            alu_c => am2901_cout,
@@ -291,7 +306,7 @@ conditionreg: gal_conditionreg port map
 			    
 slice: am2901 port map
     ( 
-			  clk => clock, 
+			  clk => ss_clock, 
            rst => reset,
            a => addr_bus, --addrA,
            b => addr_bus, --addrB,
@@ -301,8 +316,8 @@ slice: am2901 port map
            oe => nOutputEnable,
            ram0 => am2901_r0,
            ram3 => am2901_r3,
-           --qs0 => am2901_q0,
-           --qs3 => am2901_q3,
+           --qs0 => nc,
+           --qs3 => nc,
            y => io_data,
            --g_bar => nc,
            --p_bar => nc,

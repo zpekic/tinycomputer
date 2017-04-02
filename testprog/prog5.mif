@@ -1,12 +1,12 @@
 ; 		//Test program 5
 ; 		.org 0	//fill program memory starting at location 0
-0000 23;	start:  Q = 3
-0001 53;		A = Q
+0000 20;	start:  Q = 0
+0001 55;		A = 4
 0002 F5 FD;	loop:	IF (A = 0) GOTO start
-0004 FF 07;		CALL disp
-0006 52;		A--
-0007 4F;		Q--
+0004 52;		A--
+0005 41;		Q++
+0006 FF 05;		CALL disp
 0008 F1 F9;		IF (FLAGS.Z) GOTO loop 
 000A F9 F7;		IF (!FLAGS.Z) GOTO loop
-000C 10;	disp:	OUT[A] = Q
+000C 1E;	disp:	OUT[A] = Q
 000D F7 01;		RETURN

@@ -22,17 +22,19 @@
 0017 FE FB ;	IF (B != 0) GOTO dloop
 0019 F7 01 ;	RETURN
 ;--------------------------------------
-001B 58 ;rotate:NOP
-0000 00 ;       Q = INP[0]
-0000 F1 07;     IF(FLAGS.Z) GOTO rdown
-001C 60 ;rup:	R[0] << 1
-001D 61 ;	R[1] << 1
-001E 62 ;	R[2] << 1
-001F 63 ;	R[3] << 1
-0020 F7 01 ;	RETURN
-0000 73 ;rdown: R[3] >> 1
-0000 72 ;       R[2] >> 1
-0000 71 ;       R[1] >> 1
-0000 70 ;       R[0] >> 1
-0000 F7 01;     RETURN
+001B 00 ;rotate:Q = INP[0]
+001C E7 ;       FLAGS.SS = 1 //turn single step on
+001D F1 09;     IF(FLAGS.Z) GOTO rdown
+001F 60 ;rup:	R[0] << 1
+0020 61 ;	R[1] << 1
+0021 62 ;	R[2] << 1
+0022 63 ;	R[3] << 1
+0023 F4 06 ;	IF(FLAGS.X) GOTO exit
+0025 FC 05 ;    IF(!FLAGS.X) GOTO exit
+0027 73 ;rdown: R[3] >> 1
+0028 72 ;       R[2] >> 1
+0029 71 ;       R[1] >> 1
+002A 70 ;       R[0] >> 1
+002B EF ;exit:  FLAGS.SS = 0 //turn single step off		
+002C F7 01;     RETURN
 ; //end of test program!

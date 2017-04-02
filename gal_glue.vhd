@@ -32,26 +32,49 @@ use work.tinycpu_common.all;
 
 entity gal_glue is
     Port ( 
-			  clk: in STD_LOGIC;
+			  reset: in STD_LOGIC;
+			  clock: in STD_LOGIC;
 			  i : in  STD_LOGIC_VECTOR (7 downto 0);
 			  nRead: in STD_LOGIC;
 			  nWrite: in STD_LOGIC;
 			  nIo_Read: out STD_LOGIC;
 			  nIo_Write: out STD_LOGIC;
            carry_in : in  STD_LOGIC;
-           carry_out : out  STD_LOGIC);
+           carry_out : out  STD_LOGIC;
+			  execute: in STD_LOGIC;
+			  ss_mode: in STD_LOGIC;
+			  step: in STD_LOGIC;
+			  ss_clock: out STD_LOGIC);
 end gal_glue;
 
 architecture Behavioral of gal_glue is
 
 alias operation: std_logic_vector(3 downto 0) is i(7 downto 4);
 signal opcode: unsigned (3 downto 0);
+signal enable_clock: std_logic;
 
 begin
 
+ss_clock <= clock and enable_clock;
+ 
 opcode <= unsigned(operation);
 nIo_Read <= nRead;
-nIo_write <= nWrite or clk;
+nIo_write <= nWrite or clock;
+
+eval_ss: process(clock, reset)
+begin
+	if (reset = '1') then
+		enable_clock <= '1';
+	else
+		if (falling_edge(clock) and execute = '1') then
+			if (enable_clock = '1') then
+				enable_clock <= not ss_mode;
+			else 
+				enable_clock <= step;
+			end if;
+		end if;
+	end if;
+end process;
 
 mux_c: process(i, carry_in)
 begin
@@ -64,22 +87,6 @@ begin
 			carry_out <= carry_in; -- flag pass-through
 	end case;
 end process;
-
---mux_x: process(i, x3_inout, x0_inout, x_in)
---begin
---	case opcode is
---		when opcode_RTL => -- rotate "up" (*2)
---			x_out <= x3_inout;
---			x0_inout <= x_in;
---		when opcode_RTR => -- rotate "down" (/2)
---			x_out <= x0_inout;
---			x3_inout <= x_in;
---		when others => -- all other instructions, pass-through
---			x_out <= x_in;
---			x0_inout <= 'Z';
---			x3_inout <= 'Z';
---	end case;
---end process;
 
 end Behavioral;
 

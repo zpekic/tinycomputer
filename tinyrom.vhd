@@ -40,9 +40,9 @@ end tinyrom;
 
 architecture Behavioral of tinyrom is
 
-alias a6: std_logic_vector(5 downto 0) is address(5 downto 0);
+alias a8: std_logic_vector(7 downto 0) is address(7 downto 0);
 
-type rom64x8 is array(0 to 63) of std_logic_vector(7 downto 0);
+type rom256x8 is array(0 to 255) of std_logic_vector(7 downto 0);
 
 impure function char2hex(char: in character) return integer is
 begin
@@ -59,8 +59,8 @@ begin
 	return 0;
 end char2hex;
 
-impure function init_bytememory(mif_file_name : in string; hex_file_name: in string; depth: in integer; default_value: std_logic_vector(7 downto 0)) return rom64x8 is
-    variable temp_mem : rom64x8;-- := (others => (others => default));
+impure function init_bytememory(mif_file_name : in string; hex_file_name: in string; depth: in integer; default_value: std_logic_vector(7 downto 0)) return rom256x8 is
+    variable temp_mem : rom256x8;-- := (others => (others => default));
 	 -- mif file variables
     file mif_file : text open read_mode is mif_file_name;
     variable mif_line : line;
@@ -157,9 +157,9 @@ begin
 	
 end init_bytememory;
 
-constant prog_from_file: rom64x8 := init_bytememory("testprog\prog3.mif", "testprog\prog3.hex", 64, tinycpu_NOPA);
+constant prog_from_file: rom256x8 := init_bytememory("testprog\prog3.mif", "testprog\prog3.hex", 256, tinycpu_NOPA);
 
-constant prog_from_inline: rom64x8 := 
+constant prog_from_inline: rom256x8 :=
 (
 	0 => x"54", -- A=0
 	1 => x"5C", -- B=0
@@ -199,10 +199,7 @@ constant prog_from_inline: rom64x8 :=
 );
 
 begin
-	data <= prog_from_file(to_integer(unsigned(a6)));
-	--data <= x"FF";	
---	data(7 downto 4) <= "000" & address(0);
---	data(3 downto 0) <= address(3 downto 0); --"00" & address(2) & address(1);
+	data <= prog_from_file(to_integer(unsigned(a8)));
 
 end Behavioral;
 

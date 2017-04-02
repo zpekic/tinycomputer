@@ -37,38 +37,36 @@ entity tinycomputer is
 		-- Master reset button on Mercury board
 		USR_BTN: in std_logic; 
 		-- Switches on baseboard
-		-- SW0 - select alarm (on) or clock (off) to view or set
-		-- SW1 - enable alarm (on)
-		-- SW2 - 12hr mode (on), or 24hr mode (off)
-		-- SW3 - enable ADC display (on), or enable clock/alarm (off)
-		-- SW4 - keyboard mode, dec(on), hex(off)
-		-- SW5 - not used
-		-- SW6 - 7seg dimmer mode select (or ADC channel to display value)
-		-- SW7 - 7seg dimmer mode select (or ADC channel to display value)
-		-- dimmer mode -- SW7 -- SW6 --
+		-- SW3 .. SW0 == INP[0]
+		-- dimmer mode -- SW5 -- SW4 --
 		-- potentiometer	on		 on
 		-- light sensor   on 	 off
 		-- temperature    off    on
 		-- on (max light) off    off
+		-- debug mode -- SW6 -- SW5 --
+		-- none				off	off (display status 3..0)
+		-- none				off	on  (display status 7..4)
+		-- program			off	off (display current program address and instruction and status 3..0)
+		-- internal			on		on  (display instruction to Am2901 and i/o address and status 7..4)
+		-- clock mode -- SW7 --
+		-- slow				off
+		-- fast				on
+		-- also note that SW7 .. SW4 appear as INP[1]
       -------------------------------	
 		SW: in std_logic_vector(7 downto 0); 
 		-- Push buttons on baseboard
-		-- BTN3 - press to set hour for either alarm or clock
-		-- BTN2 - press to set minutes for either alarm or clock
-		-- BTN1 - decrement hour or minute by one each second (depending on BTN3 or BTN2)
-		-- BTN0 - increment hour or minute by one each second (depending on BTN3 or BTN2)
-		-- also push any of these to dismiss alarm
+		-- hooked up as INPUT[3]
 		BTN: in std_logic_vector(3 downto 0); 
 		-- Stereo audio output on baseboard, used to output sound if alarm is triggered
 		--AUDIO_OUT_L, AUDIO_OUT_R: out std_logic;
-		-- 7seg LED on baseboard to display clock or alarm
+		-- 7seg LED on baseboard to display debug or data (OUT[0] to OUT[3])
+		-- OUT[14] controls blanking of digits 3..0)
 		A_TO_G: out std_logic_vector(6 downto 0); 
 		AN: out std_logic_vector(3 downto 0); 
 		-- dot on digit 0 is lit up - PM if in 12hr mode
-		-- dot on digit 2 is lit up - 1Hz blicking if clock or steady if alarm is displayed
+		-- dot is extra 7seg display (OUT[15] controls lighting of dots 3..0)
 		DOT: out std_logic; 
-		-- 4 LEDs on Mercury board will "count" (alarm enabled but not triggered), "flash" (alarm triggered) or be off (alarm disabled)
-		--LED: out std_logic_vector(3 downto 0);
+		-- 4 LEDs on Mercury board
 		LED: out std_logic_vector(3 downto 0);
 		-- ADC interface
 		ADC_MISO: in std_logic;
@@ -77,12 +75,6 @@ entity tinycomputer is
 		ADC_CSN: out std_logic;
 		-- PMOD interface (for hex keypad)
 		PMOD: inout std_logic_vector(7 downto 0)
-		-- VGA
-		--HSYNC: out std_logic;
-		--VSYNC: out std_logic;
-		--RED: out std_logic_vector(2 downto 0);
-		--GRN: out std_logic_vector(2 downto 0);
-		--BLU: out std_logic_vector(1 downto 0)
 	);
 end tinycomputer;
 
@@ -187,6 +179,7 @@ component tinycpu is
            nIo_write : buffer  STD_LOGIC;
            io_address : out  STD_LOGIC_VECTOR (3 downto 0);
            status : out  STD_LOGIC_VECTOR (7 downto 0);
+			  step: in STD_LOGIC;
            debug_port : out  STD_LOGIC_VECTOR (15 downto 0));
 end component;
 
@@ -215,6 +208,7 @@ signal debug_rom: std_logic;
 signal led4: std_logic_vector(3 downto 0);
 signal pushbutton: std_logic_vector(3 downto 0);
 signal key_buff: std_logic_vector(15 downto 0);
+signal showdot: std_logic_vector(3 downto 0);
 
 
 -- ADC
@@ -250,6 +244,7 @@ begin
       nIo_write => nIo_write,
       io_address => io_address_bus,
       status => status_bus,
+		step => pushbutton(3),
       debug_port => debug_cpu	
 	);
 	-- PROGRAM ROM
@@ -322,10 +317,10 @@ begin
 												);
 	-- connect to 4 display LEDs
 	muxled: mux16to4 port map (
-								a => status_bus(7 downto 4),   -- NVZC
-								b => status_bus(7 downto 4),   -- NVZC 
-								c => status_bus(7 downto 4),   -- NVZC 
-								d => status_bus(7 downto 4),   -- NVZC 
+								a => status_bus(3 downto 0),   -- NVZC (status low nibble)
+								b => status_bus(7 downto 4),   -- SS E B X (status high nibble)
+								c => status_bus(3 downto 0),   -- NVZC (status low nibble)
+								d => status_bus(7 downto 4),   -- SS E B X (status high nibble)
 								--c(3) => '1',   -- debug io
 								--c(2) => '1',
 								--c(1) => nIo_Read,
@@ -367,6 +362,17 @@ begin
 								y => display_bus
 									);
 
+	-- use dots on 4 seven-seg displays to indicate single step mode by flashing
+	dotmux: mux16to4 port map (
+				a => data_port(15),
+				b => data_port(15),
+				c => "0101",
+				d => "1010",
+				sel(1) => status_bus(7),
+				sel(0) => freq(2),
+				nEnable => '0',
+				y => showdot
+			);
 	-- display on 4 seven-seg displays
 	display: fourdigitsevensegled port map ( 
 			  data => display_bus,
@@ -374,7 +380,7 @@ begin
 			  digsel(0) => freq64,
            showsegments => led_dimmer,
 			  showdigit => data_port(14),
-			  showdot => data_port(15),
+			  showdot => showdot, --data_port(15),
            anode => AN,
 			  segment(7) => DOT,
            segment(6 downto 0) => A_TO_G

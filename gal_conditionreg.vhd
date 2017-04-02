@@ -41,7 +41,7 @@ entity gal_conditionreg is
            alu_n : in  STD_LOGIC;
            alu_x3 : inout  STD_LOGIC;
            alu_x0 : inout  STD_LOGIC;
-           flags : buffer  STD_LOGIC_VECTOR (4 downto 0));
+           flags : buffer  STD_LOGIC_VECTOR (7 downto 0));
 end gal_conditionreg;
 
 architecture Behavioral of gal_conditionreg is
@@ -53,11 +53,12 @@ signal opcode: unsigned (3 downto 0);
 alias invertmask: std_logic is i(3);
 alias bitselect:	std_logic_vector(2 downto 0) is i(2 downto 0);
 -- flag bits
-alias c: std_logic is flags(0);
-alias z: std_logic is flags(1);
-alias v: std_logic is flags(2);
-alias n: std_logic is flags(3);
-alias x: std_logic is flags(4);
+alias c: std_logic is flags(0);	-- carry / borrow
+alias z: std_logic is flags(1);	-- zero
+alias v: std_logic is flags(2);	-- overflow
+alias n: std_logic is flags(3);	-- negative
+alias x: std_logic is flags(4);	-- bit extend (LSB or MSB being rotated in/out)
+alias ss: std_logic is flags(7); -- single step mode
 
 begin
 
@@ -107,12 +108,14 @@ begin
 						v <= v and (not mask(2)); -- EA
 						n <= n and (not mask(3)); -- EB
 						x <= x and (not mask(4)); -- EC 
+						ss <= ss and (not mask(7)); -- EF single step off
 					else
 						c <= c or mask(0);			-- E0 (opcode) FLAGS.C = 1
 						z <= z or mask(1);			-- E1
 						v <= v or mask(2);			-- E2
 						n <= n or mask(3);			-- E3
 						x <= x or mask(4);			-- E4
+						ss <= ss or mask(7);			-- E7 single step on
 					end if;
 				when others =>
 					null;
